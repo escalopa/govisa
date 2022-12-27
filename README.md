@@ -1,14 +1,6 @@
 # govisa
 
-## Plan for the govisa project.
+![Build Status](https://travis-ci.org/andrewstuart/govisa.svg?branch=master)
 
-### reCaptcha 
-- [ ] Get recapcha image from the website
-- [ ] Save the image to a file
-- [ ] Login with the image and get the cookies
+Govisa is an automation bot for the [Visa Application Center](https://cgifederal.secure.force.com/) in Nigeria. It is designed to automate the process of booking an appointment for a visa issuance.
 
-### request paths
-- [ ] Login to the website and get the cookies(auth token)
-- [ ] Get appointment history
-- [ ] Get current appointment history
-- [ ] Get the available appointment dates
