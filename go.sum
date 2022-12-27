@@ -1,0 +1,4 @@
+github.com/SakoDroid/telego v1.8.0 h1:zpqn4/trjVy9dnGTIUDbzn9nu717OeOejmjN6dWBmeA=
+github.com/SakoDroid/telego v1.8.0/go.mod h1:V+gBeRu0NhC/I0eYG5xwAC+KP904HrTyf8hhq3D1Y8I=
+golang.org/x/net v0.4.0 h1:Q5QPcMlvfxFTAPV0+07Xz/MpK9NTXu2VDUuy0FeMfaU=
+golang.org/x/net v0.4.0/go.mod h1:MBQ8lrhLObU/6UmLb4fmbmk5OcyYmqtbGd/9yIeKjEE=
