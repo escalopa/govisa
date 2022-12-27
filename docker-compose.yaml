@@ -1,0 +1,11 @@
+version: "3.8"
+
+services:
+  telegram:
+    container_name: govisa-telegram
+    restart: always
+    environment:
+      - BOT_TOKEN=${BOT_TOKEN}
+    build:
+        context: .
+        dockerfile: ./deployments/Dockerfile-telegram
