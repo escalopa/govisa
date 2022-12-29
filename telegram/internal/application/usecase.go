@@ -5,7 +5,10 @@ import (
 	"time"
 
 	"github.com/escalopa/govisa/telegram/core"
+	validate "github.com/go-playground/validator/v10"
 )
+
+var Validate = validate.New()
 
 type UseCase struct {
 	uc  UserCache
@@ -14,15 +17,15 @@ type UseCase struct {
 }
 
 type CreateUser struct {
-	ID       string
-	Email    string
-	Password string
+	ID       int    `validate:"required"`
+	Email    string `validate:"required,email"`
+	Password string `validate:"required"`
 }
 
 type CreateVisaAppointment struct {
-	Date     time.Time
-	Type     core.Type
-	Location core.Location
+	Date     time.Time     `validate:"required"`
+	Type     core.Type     `validate:"required,oneof=F1"`
+	Location core.Location `validate:"required,oneof=Abuja Lagos"`
 }
 
 func New(uc UserCache, srv Server, enc Encryptor) (*UseCase, error) {
@@ -30,6 +33,10 @@ func New(uc UserCache, srv Server, enc Encryptor) (*UseCase, error) {
 }
 
 func (u *UseCase) Login(ctx context.Context, cu CreateUser) error {
+	err := Validate.Struct(cu)
+	if err != nil {
+		return err
+	}
 	// Login to server to confirm credentials
 	srvUserID, err := u.srv.Login(cu.Email, cu.Password)
 	if err != nil {
@@ -54,7 +61,11 @@ func (u *UseCase) Login(ctx context.Context, cu CreateUser) error {
 	return nil
 }
 
-func (u *UseCase) BookVisaAppointment(ctx context.Context, userID string, cva CreateVisaAppointment) error {
+func (u *UseCase) BookVisaAppointment(ctx context.Context, userID int, cva CreateVisaAppointment) error {
+	err := Validate.Struct(cva)
+	if err != nil {
+		return err
+	}
 	// Get user from cache
 	user, err := u.uc.GetUserByID(ctx, userID)
 	if err != nil {
@@ -73,7 +84,7 @@ func (u *UseCase) GetAvailableVisaAppointmentDates(ctx context.Context) ([]time.
 	return u.srv.GetAvailableVisaAppointmentDates()
 }
 
-func (u *UseCase) CancelVisaAppointment(ctx context.Context, userID string) error {
+func (u *UseCase) CancelVisaAppointment(ctx context.Context, userID int) error {
 	// Get user from cache
 	user, err := u.uc.GetUserByID(ctx, userID)
 	if err != nil {
@@ -88,7 +99,7 @@ func (u *UseCase) CancelVisaAppointment(ctx context.Context, userID string) erro
 	return nil
 }
 
-func (u *UseCase) GetCurrentVisaAppointment(ctx context.Context, userID string) (*core.VisaAppointment, error) {
+func (u *UseCase) GetCurrentVisaAppointment(ctx context.Context, userID int) (*core.VisaAppointment, error) {
 	// Get user from cache
 	user, err := u.uc.GetUserByID(ctx, userID)
 	if err != nil {
@@ -99,7 +110,7 @@ func (u *UseCase) GetCurrentVisaAppointment(ctx context.Context, userID string) 
 	return u.srv.GetCurrentVisaAppointment(user.ServerUserID)
 }
 
-func (u *UseCase) GetVisaAppointments(ctx context.Context, userID string) ([]core.VisaAppointment, error) {
+func (u *UseCase) GetVisaAppointments(ctx context.Context, userID int) ([]core.VisaAppointment, error) {
 	// Get user from cache
 	user, err := u.uc.GetUserByID(ctx, userID)
 	if err != nil {

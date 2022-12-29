@@ -32,7 +32,7 @@ func (bh *BotHandler) Register() {
 }
 
 func (bh *BotHandler) Help(u *objects.Update) {
-	bh.SimpleSendMD(u.Message.Chat.Id, `
+	bh.simpleSendMD(u.Message.Chat.Id, `
 		
 		Welcome to the NG USA Visa Bot 🤖, Book your appointment with the USA Embassy in Nigeria 🇺🇸🇳🇬
 
@@ -54,20 +54,20 @@ func (bh *BotHandler) Help(u *objects.Update) {
 
 func (bh *BotHandler) Public(u *objects.Update) {
 	bh.l.Println("Public message received")
-	bh.SimpleSend(u.Message.Chat.Id, "Bot is not avaliable out the scope of private chats", u.Message.MessageId)
+	bh.simpleSend(u.Message.Chat.Id, "Bot is not avaliable out the scope of private chats", u.Message.MessageId)
 }
 
 func (bh *BotHandler) Unknow(u *objects.Update) {
-	bh.SimpleSend(u.Message.Chat.Id, "Unknow command, please use /help to see the available commands", u.Message.MessageId)
+	bh.simpleSend(u.Message.Chat.Id, "Unknow command, please use /help to see the available commands", u.Message.MessageId)
 }
 
 // SimpleSend sends a simple message
-func (bh *BotHandler) SimpleSend(chatID int, text string, replyTo int) {
+func (bh *BotHandler) simpleSend(chatID int, text string, replyTo int) {
 	bh.send(chatID, text, "", replyTo)
 }
 
-// SimpleSendMD sends a message with markdown support
-func (bh *BotHandler) SimpleSendMD(chatID int, text string, replyTo int) {
+// simpleSendMD sends a message with markdown support
+func (bh *BotHandler) simpleSendMD(chatID int, text string, replyTo int) {
 	bh.send(chatID, text, "Markdown", replyTo)
 }
 
@@ -77,4 +77,12 @@ func (bh *BotHandler) send(chatID int, text string, parseMode string, replyTo in
 	if err != nil {
 		bh.l.Println(err)
 	}
+}
+
+func (bh *BotHandler) checkCancel(u *objects.Update) bool {
+	if u.Message.Text == "/abort" {
+		bh.simpleSend(u.Message.Chat.Id, "Operation aborted", 0)
+		return true
+	}
+	return false
 }

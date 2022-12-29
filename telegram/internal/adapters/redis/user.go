@@ -3,6 +3,7 @@ package redis
 import (
 	"context"
 	"encoding/json"
+	"strconv"
 
 	"github.com/escalopa/govisa/telegram/core"
 	"github.com/go-redis/redis/v9"
@@ -22,8 +23,8 @@ func NewUserCache(rc *redis.Client) (*UserCache, error) {
 }
 
 // GetUserByID Get user from cache by chat id
-func (uc *UserCache) GetUserByID(ctx context.Context, id string) (*core.User, error) {
-	data := uc.r.Get(ctx, id)
+func (uc *UserCache) GetUserByID(ctx context.Context, id int) (*core.User, error) {
+	data := uc.r.Get(ctx, strconv.Itoa(id))
 	if data.Err() != nil {
 		return nil, data.Err()
 	}
@@ -36,7 +37,7 @@ func (uc *UserCache) GetUserByID(ctx context.Context, id string) (*core.User, er
 
 // SaveUserByID Save user in cache by chat id
 func (uc *UserCache) SaveUserByID(ctx context.Context, user *core.User) error {
-	err := uc.r.Set(context.Background(), user.ID, user, 0)
+	err := uc.r.Set(context.Background(), strconv.Itoa(user.ID), user, 0)
 	if err.Err() != nil {
 		return errors.Wrap(err.Err(), "error saving user in db")
 	}

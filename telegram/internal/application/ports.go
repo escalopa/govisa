@@ -17,7 +17,7 @@ type Server interface {
 }
 
 type UserCache interface {
-	GetUserByID(ctx context.Context, id string) (*core.User, error)
+	GetUserByID(ctx context.Context, id int) (*core.User, error)
 	SaveUserByID(ctx context.Context, user *core.User) error
 }
 

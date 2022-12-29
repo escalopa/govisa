@@ -3,7 +3,7 @@ package core
 import "encoding/json"
 
 type User struct {
-	ID           string
+	ID           int
 	Email        string
 	Password     string
 	ServerUserID int64
