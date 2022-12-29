@@ -1,37 +1,81 @@
 package main
 
 import (
-	"github.com/escalopa/govisa/pkg/config"
+	"context"
 	"log"
 
-	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
+	"github.com/escalopa/govisa/pkg/config"
+	"github.com/escalopa/govisa/pkg/security"
+	"github.com/escalopa/govisa/telegram/internal/adapters/redis"
+	"github.com/escalopa/govisa/telegram/internal/adapters/server"
+	"github.com/escalopa/govisa/telegram/internal/application"
+	"github.com/escalopa/govisa/telegram/internal/handlers"
+
+	bt "github.com/SakoDroid/telego"
+	cfg "github.com/SakoDroid/telego/configs"
 )
 
 func main() {
 	c := config.NewConfig()
 
-	bot, err := tgbotapi.NewBotAPI(c.Get("BOT_TOKEN"))
+	bot, err := bt.NewBot(cfg.Default(c.Get("BOT_TOKEN")))
 	if err != nil {
-		log.Panic(err)
+		log.Fatal(err)
+	}
+	err = bot.Run()
+	if err != nil {
+		log.Fatal(err)
+	}
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	// Create encrypter
+	encrypt, err := security.NewEncrypter(c.Get("ENCRYPT_KEY"))
+	if err != nil {
+		log.Fatal(err)
 	}
 
-	bot.Debug = true
+	// Create Redis client
+	cache, err := redis.NewRedisClient(c.Get("REDIS_URL"))
+	if err != nil {
+		log.Fatal(err)
+	}
 
-	log.Printf("Authorized on account %s", bot.Self.UserName)
+	// Create UserCache
+	uc, err := redis.NewUserCache(cache)
+	if err != nil {
+		log.Fatal(err)
+	}
 
-	u := tgbotapi.NewUpdate(0)
-	u.Timeout = 60
+	// Connect to Server endpoint
+	srv, err := server.NewServer(c.Get("SERVER_ENDPOINT"))
+	if err != nil {
+		log.Fatal(err)
+	}
 
-	updates := bot.GetUpdatesChan(u)
+	// Create Application UseCase
+	app, err := application.New(uc, srv, encrypt)
+	if err != nil {
+		log.Fatal(err)
+	}
 
-	for update := range updates {
-		if update.Message != nil { // If we got a message
-			log.Printf("[%s] %s", update.Message.From.UserName, update.Message.Text)
+	run(bot, app, ctx)
+}
 
-			msg := tgbotapi.NewMessage(update.Message.Chat.ID, update.Message.Text)
-			msg.ReplyToMessageID = update.Message.MessageID
+func run(bot *bt.Bot, app *application.UseCase, ctx context.Context) {
 
-			bot.Send(msg)
+	//The general update channel.
+	updateChannel := bot.GetUpdateChannel()
+	h := handlers.NewBotHandler(bot, app, ctx)
+	h.Register()
+	//Monitors any other update.
+	for {
+		update := <-*updateChannel
+		if update.Message == nil {
+			continue
 		}
+		// if update.Message.Chat.Type == "private" {
+		// 	h.HelpMessage(update)
+		// }
 	}
 }
