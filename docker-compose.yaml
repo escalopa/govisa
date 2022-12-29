@@ -1,11 +1,31 @@
 version: "3.8"
 
 services:
+  cache:
+    container_name: "govisa-cache"
+    image: redis:latest
+    restart: always
+    ports:
+      - "6379:6379"
+    volumes:
+      - govisa-cache:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 30s
+      retries: 5
+
   telegram:
     container_name: govisa-telegram
     restart: always
     environment:
       - BOT_TOKEN=${BOT_TOKEN}
+      - REDIS_URL=${REDIS_URL}
     build:
         context: .
         dockerfile: ./deployments/Dockerfile-telegram
+    depends_on:
+      - cache
+
+volumes:
+  govisa-cache:
