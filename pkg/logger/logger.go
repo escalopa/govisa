@@ -1,20 +1,18 @@
 package logger
 
 import (
-	"fmt"
 	"io"
 	"log"
 	"os"
 )
 
-func New(dir string) (*log.Logger, error) {
-	var l *log.Logger
-	f, err := os.OpenFile(fmt.Sprintf("%s/error.log", dir), os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
+func New(filePath string) (*log.Logger, error) {
+	f, err := os.OpenFile(filePath, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
 	if err != nil {
 		return nil, err
 	}
-	defer f.Close()
 	wrt := io.MultiWriter(os.Stdout, f)
+	l := log.New(wrt, "govisa: ", log.LstdFlags)
 	l.SetOutput(wrt)
 	return l, nil
 }

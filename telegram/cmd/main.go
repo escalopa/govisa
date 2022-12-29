@@ -2,8 +2,9 @@ package main
 
 import (
 	"context"
-	"github.com/escalopa/govisa/pkg/logger"
 	"log"
+
+	"github.com/escalopa/govisa/pkg/logger"
 
 	"github.com/escalopa/govisa/pkg/config"
 	"github.com/escalopa/govisa/pkg/security"
@@ -48,8 +49,8 @@ func main() {
 		log.Fatal(err)
 	}
 
-	// Create Logger instance, logs to stdout and LOGGING
-	l, err := logger.New(c.Get("LOGGING_FILE"))
+	// Create Logger instance, logs to stdout and Log file
+	l, err := logger.New(c.Get("TG_LOG_FILE"))
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -75,14 +76,17 @@ func run(bot *bt.Bot, app *application.UseCase, l *log.Logger, ctx context.Conte
 	updateChannel := bot.GetUpdateChannel()
 	h := handlers.NewBotHandler(bot, app, l, ctx)
 	h.Register()
+
 	//Monitors any other update.
 	for {
 		update := <-*updateChannel
 		if update.Message == nil {
 			continue
 		}
-		// if update.Message.Chat.Type == "private" {
-		// 	h.HelpMessage(update)
-		// }
+		if update.Message.Chat.Type == "private" {
+			h.Unknow(update)
+		} else {
+			h.Public(update)
+		}
 	}
 }

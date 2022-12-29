@@ -18,11 +18,17 @@ services:
   telegram:
     container_name: govisa-telegram
     restart: always
+    volumes:
+      - .:/go/src/github.com/escalopa/govisa/
     environment:
+      - TG_LOG_FILE=${TG_LOG_FILE}
       - BOT_TOKEN=${BOT_TOKEN}
       - REDIS_URL=${REDIS_URL}
+      - ENCRYPT_KEY=${ENCRYPT_KEY}
     build:
         context: .
+        target: development
+
         dockerfile: ./deployments/Dockerfile-telegram
     depends_on:
       - cache
