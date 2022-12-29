@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"github.com/escalopa/govisa/pkg/logger"
 	"log"
 
 	"github.com/escalopa/govisa/pkg/config"
@@ -29,20 +30,26 @@ func main() {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	// Create encrypter
+	// Create encryptor
 	encrypt, err := security.NewEncrypter(c.Get("ENCRYPT_KEY"))
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	// Create Redis client
-	cache, err := redis.NewRedisClient(c.Get("REDIS_URL"))
+	cache, err := redis.NewClient(c.Get("REDIS_URL"))
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	// Create UserCache
 	uc, err := redis.NewUserCache(cache)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// Create Logger instance, logs to stdout and LOGGING
+	l, err := logger.New(c.Get("LOGGING_FILE"))
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -59,14 +66,14 @@ func main() {
 		log.Fatal(err)
 	}
 
-	run(bot, app, ctx)
+	run(bot, app, l, ctx)
 }
 
-func run(bot *bt.Bot, app *application.UseCase, ctx context.Context) {
+func run(bot *bt.Bot, app *application.UseCase, l *log.Logger, ctx context.Context) {
 
 	//The general update channel.
 	updateChannel := bot.GetUpdateChannel()
-	h := handlers.NewBotHandler(bot, app, ctx)
+	h := handlers.NewBotHandler(bot, app, l, ctx)
 	h.Register()
 	//Monitors any other update.
 	for {

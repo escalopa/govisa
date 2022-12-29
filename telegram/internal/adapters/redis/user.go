@@ -21,7 +21,7 @@ func NewUserCache(rc *redis.Client) (*UserCache, error) {
 	return &UserCache{r: rc}, nil
 }
 
-// Get user from cache by chat id
+// GetUserByID Get user from cache by chat id
 func (uc *UserCache) GetUserByID(ctx context.Context, id string) (*core.User, error) {
 	data := uc.r.Get(ctx, id)
 	if data.Err() != nil {
@@ -34,7 +34,7 @@ func (uc *UserCache) GetUserByID(ctx context.Context, id string) (*core.User, er
 	return user, nil
 }
 
-// Save user in cache by chat id
+// SaveUserByID Save user in cache by chat id
 func (uc *UserCache) SaveUserByID(ctx context.Context, user *core.User) error {
 	err := uc.r.Set(context.Background(), user.ID, user, 0)
 	if err.Err() != nil {
