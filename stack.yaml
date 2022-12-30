@@ -1,16 +1,18 @@
-version: '3.8'
+version: "3.8"
 services:
-  api:
-    image: 'dekuyo/govisa-bot:0.1'
+  telegram:
+    image: "dekuyo/govisa-telegram:0.1"
     secrets:
       - govisa_bot_token
       - govisa_cache_url
       - govisa_secret_key
+    volumes:
+      - /home/ahmad/govisa/:/go/bin/govisa-telegram
     environment:
-      - BOT_TOKEN=/run/secrets/govisa_bot_token
-      - REDIS_URL=/run/secrets/govisa_cache_url
-      - ENCRYPT_KEY=/run/secrets/govisa_secret_key
-      - TG_LOG_FILE=/home/ahmad/govisa/telegram.log
+      - BOT_TOKEN_FILE=/run/secrets/govisa_bot_token
+      - REDIS_URL_FILE=/run/secrets/govisa_cache_url
+      - ENCRYPT_KEY_FILE=/run/secrets/govisa_secret_key
+      - TG_LOG_DIR=/home/ahmad/govisa/telegram.log
     extra_hosts:
       - "host.docker.internal:host-gateway"
 secrets:

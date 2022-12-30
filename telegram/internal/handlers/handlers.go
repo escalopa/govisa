@@ -7,6 +7,7 @@ import (
 
 	bt "github.com/SakoDroid/telego"
 	"github.com/SakoDroid/telego/objects"
+	"github.com/escalopa/govisa/pkg/errors"
 	"github.com/escalopa/govisa/telegram/internal/application"
 )
 
@@ -22,15 +23,15 @@ func NewBotHandler(bot *bt.Bot, uc *application.UseCase, l *log.Logger, ctx cont
 }
 
 func (bh *BotHandler) Register() {
-	bh.b.AddHandler("/start", bh.Start, "all")
-	bh.b.AddHandler("/login", bh.Login, "private")
-	bh.b.AddHandler("/book", bh.Book, "private")
-	bh.b.AddHandler("/dates", bh.Dates, "private")
-	bh.b.AddHandler("/status", bh.Status, "private")
-	bh.b.AddHandler("/history", bh.History, "private")
-	bh.b.AddHandler("/cancel", bh.Cancel, "private")
-	bh.b.AddHandler("/reschedule", bh.Reschedule, "private")
-	bh.b.AddHandler("/help", bh.Help, "private")
+	errors.CheckError(bh.b.AddHandler("/start", bh.Start, "all"))
+	errors.CheckError(bh.b.AddHandler("/login", bh.Login, "private"))
+	errors.CheckError(bh.b.AddHandler("/book", bh.Book, "private"))
+	errors.CheckError(bh.b.AddHandler("/dates", bh.Dates, "private"))
+	errors.CheckError(bh.b.AddHandler("/status", bh.Status, "private"))
+	errors.CheckError(bh.b.AddHandler("/history", bh.History, "private"))
+	errors.CheckError(bh.b.AddHandler("/cancel", bh.Cancel, "private"))
+	errors.CheckError(bh.b.AddHandler("/reschedule", bh.Reschedule, "private"))
+	errors.CheckError(bh.b.AddHandler("/help", bh.Help, "private"))
 }
 
 func (bh *BotHandler) Start(u *objects.Update) {
@@ -78,7 +79,10 @@ func (bh *BotHandler) simpleError(chatID int, msg string, err error, replyTo int
 
 func (bh *BotHandler) checkAbort(u *objects.Update, operation string) bool {
 	if u.Message.Text == "Abort" {
-		bh.b.SendMessage(u.Message.Chat.Id, fmt.Sprintf("Operation: <b>%s</b> has been aborted", operation), "HTML", 0, false, false)
+		_, err := bh.b.SendMessage(u.Message.Chat.Id, fmt.Sprintf("Operation: <b>%s</b> has been aborted", operation), "HTML", 0, false, false)
+		if err != nil {
+			bh.l.Println("Failed to send message", err)
+		}
 		return true
 	}
 	return false

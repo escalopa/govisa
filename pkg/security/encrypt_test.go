@@ -1,7 +1,6 @@
 package security
 
 import (
-	"fmt"
 	"math/rand"
 	"testing"
 	"time"
@@ -24,8 +23,6 @@ func TestEnctyptor(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			e, err := NewEncrypter(tt.secret)
-			fmt.Println(err)
-			fmt.Println(tt.err)
 			if err != nil {
 				t.Errorf("NewEncrypter() error = %v", err)
 				return

@@ -164,7 +164,10 @@ func (bh *BotHandler) readLocation(ch *chan *objs.Update, u *objs.Update) (strin
 	ckb.AddButton("Abuja", 1)
 	ckb.AddButton("Lagos", 1)
 	ckb.AddButton("Abort", 2)
-	bh.b.AdvancedMode().ASendMessage(u.Message.Chat.Id, "Choose the appointment city", "", 0, false, false, nil, true, true, ckb)
+	_, err := bh.b.AdvancedMode().ASendMessage(u.Message.Chat.Id, "Choose the appointment city", "", 0, false, false, nil, true, true, ckb)
+	if err != nil {
+		bh.l.Println("Failed to send message", err)
+	}
 	u = <-*ch
 	if bh.checkAbort(u, "Book Appointment") {
 		return "", false
@@ -179,7 +182,11 @@ func (bh *BotHandler) readType(ch *chan *objs.Update, u *objs.Update) (string, b
 	tkb.AddButton("F2", 1)
 	tkb.AddButton("F3", 1)
 	tkb.AddButton("Abort", 2)
-	bh.b.AdvancedMode().ASendMessage(u.Message.Chat.Id, "Choose type of visa are you applying for", "", 0, false, false, nil, true, true, tkb)
+	_, err := bh.b.AdvancedMode().ASendMessage(u.Message.Chat.Id, "Choose type of visa are you applying for", "", 0, false, false, nil, true, true, tkb)
+	if err != nil {
+		bh.l.Println("Failed to send message", err)
+	}
+
 	u = <-*ch
 	if bh.checkAbort(u, "Book Appointment") {
 		return "", false

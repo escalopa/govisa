@@ -21,10 +21,10 @@ services:
     volumes:
       - .:/go/src/github.com/escalopa/govisa/
     environment:
-      - TG_LOG_FILE=${TG_LOG_FILE}
       - BOT_TOKEN=${BOT_TOKEN}
       - REDIS_URL=${REDIS_URL}
       - ENCRYPT_KEY=${ENCRYPT_KEY}
+        - TG_LOG_DIR=${TG_LOG_DIR}
     build:
         context: .
         target: development

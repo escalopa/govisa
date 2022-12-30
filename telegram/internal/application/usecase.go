@@ -4,6 +4,7 @@ import (
 	"context"
 	"time"
 
+	"github.com/escalopa/govisa/pkg/errors"
 	"github.com/escalopa/govisa/telegram/core"
 	validate "github.com/go-playground/validator/v10"
 )
@@ -11,8 +12,11 @@ import (
 var Validate = validate.New()
 
 func init() {
-	Validate.RegisterValidation("vlocation", isValidLocation)
-	Validate.RegisterValidation("vtype", isValidType)
+	var err error
+	err = Validate.RegisterValidation("vlocation", isValidLocation)
+	errors.CheckError(err)
+	err = Validate.RegisterValidation("vtype", isValidType)
+	errors.CheckError(err)
 }
 
 type UseCase struct {
@@ -33,8 +37,8 @@ type CreateVisaAppointment struct {
 	Location core.Location `validate:"required,vlocation"`
 }
 
-func New(uc UserCache, srv Server, enc Encryptor) (*UseCase, error) {
-	return &UseCase{uc: uc, srv: srv, enc: enc}, nil
+func New(uc UserCache, srv Server, enc Encryptor) *UseCase {
+	return &UseCase{uc: uc, srv: srv, enc: enc}
 }
 
 func (u *UseCase) Login(ctx context.Context, cu CreateUser) error {
