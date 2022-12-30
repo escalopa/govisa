@@ -1,0 +1,18 @@
+<mxfile host="65bd71144e">
+    <diagram id="Z4LtmdfFp57d15MW-rEN" name="Structure">
+        <mxGraphModel dx="1084" dy="769" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+            <root>
+                <mxCell id="ZdrCOIaDRd0rgokKwUwD-0"/>
+                <mxCell id="ZdrCOIaDRd0rgokKwUwD-1" parent="ZdrCOIaDRd0rgokKwUwD-0"/>
+            </root>
+        </mxGraphModel>
+    </diagram>
+    <diagram id="v9dG525oTWf719MmhiB3" name="Telegram Usecase">
+        <mxGraphModel dx="1084" dy="769" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+            <root>
+                <mxCell id="0"/>
+                <mxCell id="1" parent="0"/>
+            </root>
+        </mxGraphModel>
+    </diagram>
+</mxfile>
