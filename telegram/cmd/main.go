@@ -84,7 +84,7 @@ func run(bot *bt.Bot, app *application.UseCase, l *log.Logger, ctx context.Conte
 			continue
 		}
 		if update.Message.Chat.Type == "private" {
-			h.Unknow(update)
+			h.Help(update)
 		} else {
 			h.Public(update)
 		}

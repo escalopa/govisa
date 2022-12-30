@@ -31,7 +31,7 @@ func (bh *BotHandler) Login(u *objs.Update) {
 	}
 	password := u.Message.Text
 
-	// Call loing usecase
+	// Call login usecase
 	err = bh.uc.Login(bh.ctx, application.CreateUser{
 		ID:       u.Message.From.Id,
 		Email:    email,
@@ -39,8 +39,7 @@ func (bh *BotHandler) Login(u *objs.Update) {
 	})
 
 	if err != nil {
-		bh.l.Println(err)
-		bh.simpleSend(u.Message.Chat.Id, "Wrong credentials, Pleese try again /loign", 0)
+		bh.simpleError(u.Message.Chat.Id, "Wrong credentials, Pleese try again /loign", err, 0)
 		return
 	}
 	bh.simpleSend(u.Message.Chat.Id, "You have logged in successfully", 0)

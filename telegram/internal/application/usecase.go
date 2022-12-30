@@ -10,6 +10,11 @@ import (
 
 var Validate = validate.New()
 
+func init() {
+	Validate.RegisterValidation("vlocation", isValidLocation)
+	Validate.RegisterValidation("vtype", isValidType)
+}
+
 type UseCase struct {
 	uc  UserCache
 	srv Server
@@ -24,8 +29,8 @@ type CreateUser struct {
 
 type CreateVisaAppointment struct {
 	Date     time.Time     `validate:"required"`
-	Type     core.Type     `validate:"required,oneof=F1"`
-	Location core.Location `validate:"required,oneof=Abuja Lagos"`
+	Type     core.Type     `validate:"required,vtype"`
+	Location core.Location `validate:"required,vlocation"`
 }
 
 func New(uc UserCache, srv Server, enc Encryptor) (*UseCase, error) {
@@ -110,6 +115,7 @@ func (u *UseCase) GetCurrentVisaAppointment(ctx context.Context, userID int) (*c
 	return u.srv.GetCurrentVisaAppointment(user.ServerUserID)
 }
 
+// GetVisaAppointments returns all the previous visa appointments for a user
 func (u *UseCase) GetVisaAppointments(ctx context.Context, userID int) ([]core.VisaAppointment, error) {
 	// Get user from cache
 	user, err := u.uc.GetUserByID(ctx, userID)
@@ -119,4 +125,24 @@ func (u *UseCase) GetVisaAppointments(ctx context.Context, userID int) ([]core.V
 
 	// Get visa appointments from server
 	return u.srv.GetVisaAppointments(user.ServerUserID)
+}
+
+func isValidLocation(fl validate.FieldLevel) bool {
+	l1 := fl.Field().String()
+	for _, l2 := range core.Locations {
+		if l2 == l1 {
+			return true
+		}
+	}
+	return false
+}
+
+func isValidType(fl validate.FieldLevel) bool {
+	t1 := fl.Field().String()
+	for _, t2 := range core.Types {
+		if t2 == t1 {
+			return true
+		}
+	}
+	return false
 }
