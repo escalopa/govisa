@@ -18,7 +18,7 @@ func (bh *BotHandler) Login(u *objs.Update) {
 	// Request email
 	bh.simpleSend(u.Message.Chat.Id, "Please enter your email", 0)
 	u = <-*ch
-	if bh.checkCancel(u) {
+	if bh.checkAbort(u, "User login") {
 		return
 	}
 	email := u.Message.Text
@@ -26,7 +26,7 @@ func (bh *BotHandler) Login(u *objs.Update) {
 	// Read password
 	bh.simpleSend(u.Message.Chat.Id, "Please enter your password", 0)
 	u = <-*ch
-	if bh.checkCancel(u) {
+	if bh.checkAbort(u, "User login") {
 		return
 	}
 	password := u.Message.Text

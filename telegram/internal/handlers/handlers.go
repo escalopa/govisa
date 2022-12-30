@@ -72,14 +72,18 @@ func (bh *BotHandler) simpleSend(chatID int, text string, replyTo int) {
 }
 
 func (bh *BotHandler) simpleError(chatID int, msg string, err error, replyTo int) {
-	bh.l.Println(fmt.Sprintf("chatID: %d, Error: %s", chatID, err))
+	bh.l.Printf("chatID: %d, Error: %s", chatID, err)
 	bh.simpleSend(chatID, msg, replyTo)
 }
 
-func (bh *BotHandler) checkCancel(u *objects.Update) bool {
-	if u.Message.Text == "/abort" {
-		bh.simpleSend(u.Message.Chat.Id, "Operation aborted", 0)
+func (bh *BotHandler) checkAbort(u *objects.Update, operation string) bool {
+	if u.Message.Text == "Abort" {
+		bh.b.SendMessage(u.Message.Chat.Id, fmt.Sprintf("Operation: <b>%s</b> has been aborted", operation), "HTML", 0, false, false)
 		return true
 	}
 	return false
+}
+
+func toMarkdown(title, text string) string {
+	return fmt.Sprintf("%s\n```\n%s\n```", title, text)
 }

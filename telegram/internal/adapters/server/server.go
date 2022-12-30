@@ -31,7 +31,7 @@ func (s *Server) CancelVisaAppointment(userID int64) error {
 	return nil
 }
 
-func (s *Server) GetAvailableVisaAppointmentDates() ([]time.Time, error) {
+func (s *Server) GetAvailableVisaAppointmentDates(city string) ([]time.Time, error) {
 	return nil, nil
 }
 

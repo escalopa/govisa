@@ -11,7 +11,7 @@ type Server interface {
 	Login(email, password string) (int64, error)
 	GetCurrentVisaAppointment(userID int64) (*core.VisaAppointment, error)
 	GetVisaAppointments(userID int64) ([]core.VisaAppointment, error)
-	GetAvailableVisaAppointmentDates() ([]time.Time, error)
+	GetAvailableVisaAppointmentDates(city string) ([]time.Time, error)
 	BookVisaAppointment(userID int64, cva CreateVisaAppointment) error
 	CancelVisaAppointment(userID int64) error
 }

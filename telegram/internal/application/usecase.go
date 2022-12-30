@@ -29,7 +29,7 @@ type CreateUser struct {
 
 type CreateVisaAppointment struct {
 	Date     time.Time     `validate:"required"`
-	Type     core.Type     `validate:"required,vtype"`
+	VType    core.VType    `validate:"required,vtype"`
 	Location core.Location `validate:"required,vlocation"`
 }
 
@@ -85,8 +85,8 @@ func (u *UseCase) BookVisaAppointment(ctx context.Context, userID int, cva Creat
 	return nil
 }
 
-func (u *UseCase) GetAvailableVisaAppointmentDates(ctx context.Context) ([]time.Time, error) {
-	return u.srv.GetAvailableVisaAppointmentDates()
+func (u *UseCase) GetAvailableVisaAppointmentDates(ctx context.Context, city string) ([]time.Time, error) {
+	return u.srv.GetAvailableVisaAppointmentDates(city)
 }
 
 func (u *UseCase) CancelVisaAppointment(ctx context.Context, userID int) error {
