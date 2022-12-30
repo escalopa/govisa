@@ -7,12 +7,12 @@ services:
       - govisa_cache_url
       - govisa_secret_key
     volumes:
-      - /home/ahmad/govisa/:/go/bin/govisa-telegram
+      - .:/var/log/govisa
     environment:
       - BOT_TOKEN_FILE=/run/secrets/govisa_bot_token
       - REDIS_URL_FILE=/run/secrets/govisa_cache_url
       - ENCRYPT_KEY_FILE=/run/secrets/govisa_secret_key
-      - TG_LOG_DIR=/home/ahmad/govisa/telegram.log
+      - TG_LOG_DIR=/var/log/govisa/telegram.log
     extra_hosts:
       - "host.docker.internal:host-gateway"
 secrets:
