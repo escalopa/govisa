@@ -53,6 +53,9 @@ func (bh *BotHandler) Book(u *objs.Update) {
 func (bh *BotHandler) Dates(u *objs.Update) {
 	chatID := strconv.Itoa(u.Message.Chat.Id)
 	ch, err := bh.b.AdvancedMode().RegisterChannel(chatID, "message")
+	if err != nil {
+		return
+	}
 
 	// Read City
 	location, ok := bh.readLocation(ch, u)
