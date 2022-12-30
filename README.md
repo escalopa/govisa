@@ -1,6 +1,6 @@
 # govisa
 
-## Plan for the govisa project.
+![Build Status](https://travis-ci.org/andrewstuart/govisa.svg?branch=master)
 
 ### Telegram bot
 
