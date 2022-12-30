@@ -2,21 +2,27 @@ package application
 
 import (
 	"context"
+	"errors"
 	"time"
 
-	"github.com/escalopa/govisa/pkg/errors"
+	"github.com/escalopa/govisa/pkg/govisa"
 	"github.com/escalopa/govisa/telegram/core"
 	validate "github.com/go-playground/validator/v10"
+	"github.com/go-redis/redis/v9"
 )
 
-var Validate = validate.New()
+var (
+	Validate = validate.New()
+
+	ErrUserNotFound = errors.New("ops!, you are not logged in, Use /login to login")
+)
 
 func init() {
 	var err error
 	err = Validate.RegisterValidation("vlocation", isValidLocation)
-	errors.CheckError(err)
-	err = Validate.RegisterValidation("vtype", isValidType)
-	errors.CheckError(err)
+	govisa.CheckError(err)
+	err = Validate.RegisterValidation("vcity", isValidType)
+	govisa.CheckError(err)
 }
 
 type UseCase struct {
@@ -32,9 +38,9 @@ type CreateUser struct {
 }
 
 type CreateVisaAppointment struct {
-	Date     time.Time     `validate:"required"`
-	VType    core.VType    `validate:"required,vtype"`
-	Location core.Location `validate:"required,vlocation"`
+	Date     time.Time  `validate:"required"`
+	VType    core.VType `validate:"required,vtype"`
+	Location core.City  `validate:"required,vcity"`
 }
 
 func New(uc UserCache, srv Server, enc Encryptor) *UseCase {
@@ -76,7 +82,7 @@ func (u *UseCase) BookVisaAppointment(ctx context.Context, userID int, cva Creat
 		return err
 	}
 	// Get user from cache
-	user, err := u.uc.GetUserByID(ctx, userID)
+	user, err := u.getUser(ctx, userID)
 	if err != nil {
 		return err
 	}
@@ -89,13 +95,26 @@ func (u *UseCase) BookVisaAppointment(ctx context.Context, userID int, cva Creat
 	return nil
 }
 
-func (u *UseCase) GetAvailableVisaAppointmentDates(ctx context.Context, city string) ([]time.Time, error) {
-	return u.srv.GetAvailableVisaAppointmentDates(city)
+func (u *UseCase) RescheduleVisaAppointment(ctx context.Context, userID int, cva CreateVisaAppointment) error {
+	user, err := u.getUser(ctx, userID)
+	if err != nil {
+		return err
+	}
+	// TODO: Validate struct
+	// err = Validate.Struct(cva)
+	// if err != nil {
+	// 	return err
+	// }
+	err = u.srv.RescheduleVisaAppointment(user.ServerUserID, cva)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func (u *UseCase) CancelVisaAppointment(ctx context.Context, userID int) error {
 	// Get user from cache
-	user, err := u.uc.GetUserByID(ctx, userID)
+	user, err := u.getUser(ctx, userID)
 	if err != nil {
 		return err
 	}
@@ -108,9 +127,17 @@ func (u *UseCase) CancelVisaAppointment(ctx context.Context, userID int) error {
 	return nil
 }
 
+func (u *UseCase) GetAvailableVisaAppointmentDates(ctx context.Context, userID int, city string) ([]time.Time, error) {
+	user, err := u.getUser(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
+	return u.srv.GetAvailableVisaAppointmentDates(user.ServerUserID, city)
+}
+
 func (u *UseCase) GetCurrentVisaAppointment(ctx context.Context, userID int) (*core.VisaAppointment, error) {
 	// Get user from cache
-	user, err := u.uc.GetUserByID(ctx, userID)
+	user, err := u.getUser(ctx, userID)
 	if err != nil {
 		return nil, err
 	}
@@ -122,7 +149,7 @@ func (u *UseCase) GetCurrentVisaAppointment(ctx context.Context, userID int) (*c
 // GetVisaAppointments returns all the previous visa appointments for a user
 func (u *UseCase) GetVisaAppointments(ctx context.Context, userID int) ([]core.VisaAppointment, error) {
 	// Get user from cache
-	user, err := u.uc.GetUserByID(ctx, userID)
+	user, err := u.getUser(ctx, userID)
 	if err != nil {
 		return nil, err
 	}
@@ -131,9 +158,20 @@ func (u *UseCase) GetVisaAppointments(ctx context.Context, userID int) ([]core.V
 	return u.srv.GetVisaAppointments(user.ServerUserID)
 }
 
+func (u *UseCase) getUser(ctx context.Context, userID int) (*core.User, error) {
+	user, err := u.uc.GetUserByID(ctx, userID)
+	if err != nil {
+		if err == redis.Nil {
+			return nil, ErrUserNotFound
+		}
+		return nil, err
+	}
+	return user, nil
+}
+
 func isValidLocation(fl validate.FieldLevel) bool {
 	l1 := fl.Field().String()
-	for _, l2 := range core.Locations {
+	for _, l2 := range core.Cities {
 		if l2 == l1 {
 			return true
 		}

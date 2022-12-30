@@ -1,7 +1,7 @@
 version: "3.8"
 services:
   telegram:
-    image: "dekuyo/govisa-telegram:0.1"
+    image: "dekuyo/govisa-telegram:0.2"
     secrets:
       - govisa_bot_token
       - govisa_cache_url

@@ -39,7 +39,7 @@ func (bh *BotHandler) Login(u *objs.Update) {
 	})
 
 	if err != nil {
-		bh.simpleError(u.Message.Chat.Id, "Wrong credentials, Pleese try again /loign", err, 0)
+		bh.simpleError(u.Message.Chat.Id, "Invalid or Wrong credentials, Pleese try again /loign", err, 0)
 		return
 	}
 	bh.simpleSend(u.Message.Chat.Id, "You have logged in successfully", 0)

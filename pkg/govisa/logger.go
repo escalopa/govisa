@@ -1,4 +1,4 @@
-package logger
+package govisa
 
 import (
 	"io"
@@ -6,7 +6,7 @@ import (
 	"os"
 )
 
-func New(filePath string) (*log.Logger, error) {
+func NewLogger(filePath string) (*log.Logger, error) {
 	f, err := os.OpenFile(filePath, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
 	if err != nil {
 		return nil, err

@@ -4,8 +4,7 @@ import (
 	"context"
 	"log"
 
-	"github.com/escalopa/govisa/pkg/errors"
-	"github.com/escalopa/govisa/pkg/logger"
+	"github.com/escalopa/govisa/pkg/govisa"
 
 	"github.com/escalopa/govisa/pkg/config"
 	"github.com/escalopa/govisa/pkg/security"
@@ -22,31 +21,31 @@ func main() {
 	c := config.NewConfig()
 
 	bot, err := bt.NewBot(cfg.Default(c.Get("BOT_TOKEN")))
-	errors.CheckError(err)
+	govisa.CheckError(err)
 	err = bot.Run()
-	errors.CheckError(err)
+	govisa.CheckError(err)
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
 	// Create encryptor
 	encrypt, err := security.NewEncrypter(c.Get("ENCRYPT_KEY"))
-	errors.CheckError(err)
+	govisa.CheckError(err)
 
 	// Create Redis client
 	cache, err := redis.NewClient(c.Get("REDIS_URL"))
-	errors.CheckError(err)
+	govisa.CheckError(err)
 
 	// Create UserCache
 	uc, err := redis.NewUserCache(cache)
-	errors.CheckError(err)
+	govisa.CheckError(err)
 
 	// Create Logger instance, logs to stdout and Log file
-	l, err := logger.New(c.Get("TG_LOG_DIR"))
-	errors.CheckError(err)
+	l, err := govisa.NewLogger(c.Get("TG_LOG_DIR"))
+	govisa.CheckError(err)
 
 	// Connect to Server endpoint
 	srv, err := server.NewServer(c.Get("SERVER_ENDPOINT"))
-	errors.CheckError(err)
+	govisa.CheckError(err)
 
 	// Create Application UseCase
 	app := application.New(uc, srv, encrypt)

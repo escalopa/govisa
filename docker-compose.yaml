@@ -24,11 +24,10 @@ services:
       - BOT_TOKEN=${BOT_TOKEN}
       - REDIS_URL=${REDIS_URL}
       - ENCRYPT_KEY=${ENCRYPT_KEY}
-        - TG_LOG_DIR=${TG_LOG_DIR}
+      - TG_LOG_DIR=${TG_LOG_DIR}
     build:
         context: .
         target: development
-
         dockerfile: ./deployments/Dockerfile-telegram
     depends_on:
       - cache

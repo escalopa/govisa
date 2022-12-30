@@ -7,7 +7,7 @@ import (
 
 	bt "github.com/SakoDroid/telego"
 	"github.com/SakoDroid/telego/objects"
-	"github.com/escalopa/govisa/pkg/errors"
+	"github.com/escalopa/govisa/pkg/govisa"
 	"github.com/escalopa/govisa/telegram/internal/application"
 )
 
@@ -23,15 +23,15 @@ func NewBotHandler(bot *bt.Bot, uc *application.UseCase, l *log.Logger, ctx cont
 }
 
 func (bh *BotHandler) Register() {
-	errors.CheckError(bh.b.AddHandler("/start", bh.Start, "all"))
-	errors.CheckError(bh.b.AddHandler("/login", bh.Login, "private"))
-	errors.CheckError(bh.b.AddHandler("/book", bh.Book, "private"))
-	errors.CheckError(bh.b.AddHandler("/dates", bh.Dates, "private"))
-	errors.CheckError(bh.b.AddHandler("/status", bh.Status, "private"))
-	errors.CheckError(bh.b.AddHandler("/history", bh.History, "private"))
-	errors.CheckError(bh.b.AddHandler("/cancel", bh.Cancel, "private"))
-	errors.CheckError(bh.b.AddHandler("/reschedule", bh.Reschedule, "private"))
-	errors.CheckError(bh.b.AddHandler("/help", bh.Help, "private"))
+	govisa.CheckError(bh.b.AddHandler("/start", bh.Start, "all"))
+	govisa.CheckError(bh.b.AddHandler("/login", bh.Login, "private"))
+	govisa.CheckError(bh.b.AddHandler("/book", bh.Book, "private"))
+	govisa.CheckError(bh.b.AddHandler("/dates", bh.Dates, "private"))
+	govisa.CheckError(bh.b.AddHandler("/status", bh.Status, "private"))
+	govisa.CheckError(bh.b.AddHandler("/history", bh.History, "private"))
+	govisa.CheckError(bh.b.AddHandler("/cancel", bh.Cancel, "private"))
+	govisa.CheckError(bh.b.AddHandler("/reschedule", bh.Reschedule, "private"))
+	govisa.CheckError(bh.b.AddHandler("/help", bh.Help, "private"))
 }
 
 func (bh *BotHandler) Start(u *objects.Update) {
@@ -68,12 +68,12 @@ func (bh *BotHandler) Public(u *objects.Update) {
 func (bh *BotHandler) simpleSend(chatID int, text string, replyTo int) {
 	_, err := bh.b.SendMessage(chatID, text, "", replyTo, false, false)
 	if err != nil {
-		bh.l.Println(err)
+		go bh.l.Println(err)
 	}
 }
 
 func (bh *BotHandler) simpleError(chatID int, msg string, err error, replyTo int) {
-	bh.l.Printf("chatID: %d, Error: %s", chatID, err)
+	go bh.l.Printf("chatID: %d, Error: %s, Msg: %s", chatID, err, msg)
 	bh.simpleSend(chatID, msg, replyTo)
 }
 
@@ -81,13 +81,9 @@ func (bh *BotHandler) checkAbort(u *objects.Update, operation string) bool {
 	if u.Message.Text == "Abort" {
 		_, err := bh.b.SendMessage(u.Message.Chat.Id, fmt.Sprintf("Operation: <b>%s</b> has been aborted", operation), "HTML", 0, false, false)
 		if err != nil {
-			bh.l.Println("Failed to send message", err)
+			go bh.l.Println("Failed to send message", err)
 		}
 		return true
 	}
 	return false
-}
-
-func toMarkdown(title, text string) string {
-	return fmt.Sprintf("%s\n```\n%s\n```", title, text)
 }

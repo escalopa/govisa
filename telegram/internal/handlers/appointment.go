@@ -19,6 +19,7 @@ const (
 func (bh *BotHandler) Book(u *objs.Update) {
 	chatID := strconv.Itoa(u.Message.Chat.Id)
 	ch, err := bh.b.AdvancedMode().RegisterChannel(chatID, "message")
+	defer bh.b.AdvancedMode().UnRegisterChannel(chatID, "message")
 	if err != nil {
 		return
 	}
@@ -36,15 +37,15 @@ func (bh *BotHandler) Book(u *objs.Update) {
 	cva.VType = core.VType(vType)
 
 	// Read City
-	location, ok := bh.readLocation(ch, u)
+	city, ok := bh.readCity(ch, u)
 	if !ok {
 		return
 	}
-	cva.Location = core.Location(location)
+	cva.Location = core.City(city)
 
 	err = bh.uc.BookVisaAppointment(bh.ctx, u.Message.Chat.Id, cva)
 	if err != nil {
-		bh.simpleError(u.Message.Chat.Id, "An error occurred while booking your appointment, Please try again /book", err, 0)
+		bh.simpleError(u.Message.Chat.Id, err.Error(), err, 0)
 		return
 	}
 	bh.simpleSend(u.Message.Chat.Id, "Your appointment has been booked successfully", 0)
@@ -53,20 +54,30 @@ func (bh *BotHandler) Book(u *objs.Update) {
 func (bh *BotHandler) Dates(u *objs.Update) {
 	chatID := strconv.Itoa(u.Message.Chat.Id)
 	ch, err := bh.b.AdvancedMode().RegisterChannel(chatID, "message")
+	defer bh.b.AdvancedMode().UnRegisterChannel(chatID, "message")
 	if err != nil {
 		return
 	}
 
 	// Read City
-	location, ok := bh.readLocation(ch, u)
-	if !ok {
+	ckb := bh.b.CreateKeyboard(true, true, false, "")
+	ckb.AddButton("Abuja", 1)
+	ckb.AddButton("Lagos", 1)
+	ckb.AddButton("Abort", 2)
+	_, err = bh.b.AdvancedMode().ASendMessage(u.Message.Chat.Id, "Choose the appointment city", "", 0, false, false, nil, true, true, ckb)
+	if err != nil {
+		bh.l.Println("Failed to send message", err)
+	}
+	u = <-*ch
+	if bh.checkAbort(u, "Get Available Dates") {
 		return
 	}
+	location := u.Message.Text
 
 	// Get Dates & Convert dates to md table
-	dates, err := bh.uc.GetAvailableVisaAppointmentDates(bh.ctx, location)
+	dates, err := bh.uc.GetAvailableVisaAppointmentDates(bh.ctx, u.Message.Chat.Id, location)
 	if err != nil {
-		bh.simpleError(u.Message.Chat.Id, "Error", err, 0)
+		bh.simpleError(u.Message.Chat.Id, err.Error(), err, 0)
 		return
 	}
 	table, err := tablify([]string{"Date"}, func() [][]string {
@@ -77,7 +88,7 @@ func (bh *BotHandler) Dates(u *objs.Update) {
 		return rows
 	})
 	if err != nil {
-		bh.simpleError(u.Message.Chat.Id, "Error", err, 0)
+		bh.simpleError(u.Message.Chat.Id, err.Error(), err, 0)
 		return
 	}
 
@@ -95,7 +106,7 @@ func (bh *BotHandler) Status(u *objs.Update) {
 	// Get Dates & Convert dates to md table
 	currAppt, err := bh.uc.GetCurrentVisaAppointment(bh.ctx, u.Message.Chat.Id)
 	if err != nil {
-		bh.simpleError(u.Message.Chat.Id, "Error", err, 0)
+		bh.simpleError(u.Message.Chat.Id, err.Error(), err, 0)
 		return
 	}
 
@@ -108,7 +119,7 @@ func (bh *BotHandler) Status(u *objs.Update) {
 		return rows
 	})
 	if err != nil {
-		bh.simpleError(u.Message.Chat.Id, "Error", err, 0)
+		bh.simpleError(u.Message.Chat.Id, err.Error(), err, 0)
 		return
 	}
 
@@ -123,7 +134,7 @@ func (bh *BotHandler) History(u *objs.Update) {
 	// Get previous appointments
 	prevAppts, err := bh.uc.GetVisaAppointments(bh.ctx, u.Message.Chat.Id)
 	if err != nil {
-		bh.simpleError(u.Message.Chat.Id, "Error", err, 0)
+		bh.simpleError(u.Message.Chat.Id, err.Error(), err, 0)
 		return
 	}
 
@@ -136,7 +147,7 @@ func (bh *BotHandler) History(u *objs.Update) {
 		return rows
 	})
 	if err != nil {
-		bh.simpleError(u.Message.Chat.Id, "Error", err, 0)
+		bh.simpleError(u.Message.Chat.Id, err.Error(), err, 0)
 		return
 	}
 
@@ -149,17 +160,23 @@ func (bh *BotHandler) History(u *objs.Update) {
 func (bh *BotHandler) Cancel(u *objs.Update) {
 	err := bh.uc.CancelVisaAppointment(bh.ctx, u.Message.Chat.Id)
 	if err != nil {
-		bh.simpleSend(u.Message.Chat.Id, "An error occurred while cancelling your appointment", 0)
+		bh.simpleError(u.Message.Chat.Id, err.Error(), err, 0)
 		return
 	}
 	bh.simpleSend(u.Message.Chat.Id, "Your appointment has been cancelled", 0)
 }
 
 func (bh *BotHandler) Reschedule(u *objs.Update) {
+	// TODO: Implement rescheduling, read date and time from user
+	err := bh.uc.RescheduleVisaAppointment(bh.ctx, u.Message.Chat.Id, application.CreateVisaAppointment{})
+	if err != nil {
+		bh.simpleError(u.Message.Chat.Id, err.Error(), err, 0)
+		return
+	}
 	bh.simpleSend(u.Message.Chat.Id, "Your appointment has been rescheduled successfully", 0)
 }
 
-func (bh *BotHandler) readLocation(ch *chan *objs.Update, u *objs.Update) (string, bool) {
+func (bh *BotHandler) readCity(ch *chan *objs.Update, u *objs.Update) (string, bool) {
 	ckb := bh.b.CreateKeyboard(true, true, false, "")
 	ckb.AddButton("Abuja", 1)
 	ckb.AddButton("Lagos", 1)
@@ -167,13 +184,13 @@ func (bh *BotHandler) readLocation(ch *chan *objs.Update, u *objs.Update) (strin
 	_, err := bh.b.AdvancedMode().ASendMessage(u.Message.Chat.Id, "Choose the appointment city", "", 0, false, false, nil, true, true, ckb)
 	if err != nil {
 		bh.l.Println("Failed to send message", err)
+		return "", false
 	}
 	u = <-*ch
 	if bh.checkAbort(u, "Book Appointment") {
 		return "", false
 	}
-	location := u.Message.Text
-	return location, true
+	return u.Message.Text, true
 }
 
 func (bh *BotHandler) readType(ch *chan *objs.Update, u *objs.Update) (string, bool) {
@@ -201,4 +218,8 @@ func tablify(columns []string, data func() [][]string) (string, error) {
 		Build(columns...).
 		Format(data())
 	return table, err
+}
+
+func toMarkdown(title, text string) string {
+	return fmt.Sprintf("%s\n```\n%s\n```", title, text)
 }
