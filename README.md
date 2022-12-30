@@ -14,3 +14,4 @@
 - [ ] handle not found errors from db
 - [ ] add ci/cd
 - [ ] remove keyboard after a command is executed
+- [ ] fix the bug with sending a command in the middle of a conversation (When the user is in the middle of a conversation, and sends a command, terminate the conversation and execute the command)
